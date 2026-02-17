@@ -5,7 +5,8 @@ export enum ViewType {
   BUDGET = 'BUDGET',
   PROFILE = 'PROFILE',
   ADD_TRANSACTION = 'ADD_TRANSACTION',
-  REGISTRATION = 'REGISTRATION'
+  REGISTRATION = 'REGISTRATION',
+  SCAN = 'SCAN'
 }
 
 export interface UserProfile {
@@ -27,6 +28,7 @@ export interface Transaction {
   category: string;
   date: string;
   type: 'expense' | 'income';
+  note?: string;
 }
 
 export interface CategoryDef {

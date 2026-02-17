@@ -21,3 +21,39 @@ export async function getFinancialInsight(balance: number, spentThisMonth: numbe
     return "Harcama alışkanlıklarınız optimize ediliyor. Bu şekilde devam ederseniz ay sonunda ₺1.850,00 tasarruf edebilirsiniz.";
   }
 }
+
+export async function analyzeReceipt(base64Image: string, categories: {id: string, name: string}[]) {
+  try {
+    const categoryList = categories.map(c => `${c.id} (${c.name})`).join(", ");
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64Image
+          }
+        },
+        {
+          text: `Bu bir alışveriş fişi veya faturasıdır. Görüntüyü analiz et ve şu bilgileri JSON formatında döndür:
+          - amount: Toplam tutar (sayı olarak, kuruşlar nokta ile ayrılmış)
+          - date: İşlem tarihi (ISO formatında, eğer bulunamazsa bugünün tarihini kullan)
+          - categoryId: Şu kategorilerden en uygun olanın ID'si: [${categoryList}]
+          - storeName: Mağaza veya market adı
+          - note: Alınan ana ürünlerin kısa bir özeti (örn: "Market alışverişi, meyve, süt")
+          
+          Sadece JSON döndür, başka açıklama yapma.`
+        }
+      ],
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+
+    return JSON.parse(response.text);
+  } catch (error) {
+    console.error("Receipt analysis failed:", error);
+    return null;
+  }
+}

@@ -8,6 +8,7 @@ import Profile from './components/Profile';
 import AddTransaction from './components/AddTransaction';
 import Registration from './components/Registration';
 import BottomNav from './components/BottomNav';
+import ScanReceipt from './components/ScanReceipt';
 
 const DEFAULT_CATEGORIES: CategoryDef[] = [
   { id: 'yemek', name: 'Yemek', icon: '🍴', initialBudget: 1200, color: '#fb923c', bg: 'bg-orange-400' },
@@ -62,7 +63,7 @@ const App: React.FC = () => {
   }, [user, transactions, unassignedBalance, categories, notifications]);
 
   const handleNavigate = (view: ViewType) => {
-    if (view === ViewType.ADD_TRANSACTION) {
+    if (view === ViewType.ADD_TRANSACTION || view === ViewType.SCAN) {
       setPrevView(currentView);
     }
     setCurrentView(view);
@@ -95,7 +96,7 @@ const App: React.FC = () => {
       setUnassignedBalance(prev => prev + tx.amount);
     }
     
-    handleNavigate(prevView);
+    handleNavigate(ViewType.DASHBOARD);
   };
 
   const handleAddCategory = (newCat: Omit<CategoryDef, 'id'>) => {
@@ -171,18 +172,29 @@ const App: React.FC = () => {
             onQuickAddCategory={handleAddCategory}
           />
         );
+      case ViewType.SCAN:
+        return (
+          <ScanReceipt 
+            categories={categories}
+            onSave={handleAddTransaction}
+            onClose={() => handleNavigate(prevView)}
+          />
+        );
       default:
         return <Dashboard user={user} onAssignClick={() => handleNavigate(ViewType.BUDGET)} balance={unassignedBalance} transactions={transactions} categories={categories} />;
     }
   };
 
+  // Tam ekran görünümler (Kamera, Kayıt vb)
+  const isFullScreenView = currentView === ViewType.SCAN || currentView === ViewType.REGISTRATION;
+
   return (
     <div className="relative h-full w-full max-w-md mx-auto bg-[#0f172a] overflow-hidden flex flex-col shadow-2xl">
-      <div className="scroll-container no-scrollbar">
+      <div className={`scroll-container no-scrollbar ${isFullScreenView ? 'p-0 pb-0' : ''}`}>
         {renderView()}
       </div>
 
-      {user && currentView !== ViewType.ADD_TRANSACTION && (
+      {user && !isFullScreenView && currentView !== ViewType.ADD_TRANSACTION && (
         <>
           <div className="fixed bottom-28 right-6 z-50">
             <button 
